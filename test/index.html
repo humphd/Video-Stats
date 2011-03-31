@@ -1,6 +1,14 @@
 <html><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8"><title>Firefox video paint stats</title></head>
 <script src="../video-stats.js"></script>
+<style>
+  #graph-canvas {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    z-index: -1;
+  }
+</style>
 <body>
   <p>Demonstration of the Firefox video paint statistics. Requires recent <a href="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/">Firefox nightly</a>, (or Firefox 5 once it ships!)</p>
 
@@ -28,10 +36,36 @@
 
 document.addEventListener('DOMContentLoaded', function() {
 
-  var v = window.videoStatsObjects[0];
+  const GRAPH_HEIGHT = 200;
+  const GRAPH_BLOCK_SIZE = 3;
+  const GRAPH_BLOCK_SPACING = 2;
+  const GRAPH_BLOCK_SIZE_TOTAL = GRAPH_BLOCK_SIZE + GRAPH_BLOCK_SPACING;
+  const NUM_BLOCKS_Y = GRAPH_HEIGHT / GRAPH_BLOCK_SIZE_TOTAL;
+
+  var v = window.videoStatsObjects[0],
+      c = document.getElementById('graph-canvas');
+      ctx = c.getContext('2d');
+
+  c.width = window.innerWidth;
+  c.height = GRAPH_HEIGHT;
+
+  ctx.fillStyle = "#c0c0c0";
+  ctx.fillRect(0, 0, c.width, c.height);
 
   function update(s, callToString) {
     document.getElementById(s).innerHTML = callToString ? v[s].toString() : v[s];
+  }
+
+  function drawGraphLine(s, callToString, cap, colour) {
+    colour = colour || "rgba(64, 64, 64, 0.5)";
+    ctx.fillStyle = "rgba(64, 64, 64, 0.5)";
+    var value = callToString ? v[s].toString() : v[s];
+    var i;
+    for (i=NUM_BLOCKS_Y, h=(NUM_BLOCKS_Y - value.toString()/cap * NUM_BLOCKS_Y); i>h; --i) {
+      ctx.fillRect(c.width - GRAPH_BLOCK_SIZE_TOTAL, i*GRAPH_BLOCK_SIZE_TOTAL, GRAPH_BLOCK_SIZE, GRAPH_BLOCK_SIZE);
+    }
+    ctx.fillStyle = colour;
+    ctx.fillRect(c.width - GRAPH_BLOCK_SIZE_TOTAL, i*GRAPH_BLOCK_SIZE_TOTAL, GRAPH_BLOCK_SIZE, GRAPH_BLOCK_SIZE);
   }
 
   setInterval(function() {
@@ -50,9 +84,17 @@ document.addEventListener('DOMContentLoaded', function() {
     update('dedpsMean', true);
     update('prepsMean', true);
     update('pntpsMean', true);
+
+    ctx.drawImage(c, -GRAPH_BLOCK_SIZE_TOTAL, 0, c.width, c.height);
+    ctx.fillStyle = "#c0c0c0";
+    ctx.fillRect(c.width - GRAPH_BLOCK_SIZE_TOTAL, 0, GRAPH_BLOCK_SIZE, c.height);
+    drawGraphLine('parpsMean', true, 20, 'rgba(0, 200, 0, 1.0)');
+    drawGraphLine('dedpsMean', true, 20, 'rgba(200, 0, 0, 1.0)');
+
   }, 1000);
 
 }, false);
 
 </script>
+<canvas id="graph-canvas"></canvas>
 </body></html>
