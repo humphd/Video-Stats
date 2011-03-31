@@ -4,9 +4,7 @@
 <style>
   #graph-canvas {
     position: absolute;
-    bottom: 0px;
-    left: 0px;
-    z-index: -1;
+    z-index: 10;
   }
 </style>
 <body>
@@ -37,19 +35,23 @@
 document.addEventListener('DOMContentLoaded', function() {
 
   const GRAPH_HEIGHT = 200;
-  const GRAPH_BLOCK_SIZE = 3;
-  const GRAPH_BLOCK_SPACING = 2;
+  const GRAPH_BLOCK_SIZE = 2;
+  const GRAPH_BLOCK_SPACING = 1;
   const GRAPH_BLOCK_SIZE_TOTAL = GRAPH_BLOCK_SIZE + GRAPH_BLOCK_SPACING;
   const NUM_BLOCKS_Y = GRAPH_HEIGHT / GRAPH_BLOCK_SIZE_TOTAL;
 
   var v = window.videoStatsObjects[0],
       c = document.getElementById('graph-canvas');
+      vid = document.getElementById('v');
       ctx = c.getContext('2d');
 
-  c.width = window.innerWidth;
-  c.height = GRAPH_HEIGHT;
+  c.width = 480;
+  c.height = 100;
 
-  ctx.fillStyle = "#c0c0c0";
+  c.style.top = vid.offsetTop + "px";
+  c.style.left = vid.offsetLeft + "px";
+
+  ctx.fillStyle = "rgba(0,0,0,0)";
   ctx.fillRect(0, 0, c.width, c.height);
 
   function update(s, callToString) {
@@ -57,8 +59,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function drawGraphLine(s, callToString, cap, colour) {
-    colour = colour || "rgba(64, 64, 64, 0.5)";
-    ctx.fillStyle = "rgba(64, 64, 64, 0.5)";
+    colour = colour || "rgba(64, 64, 64, 1.0)";
+    ctx.fillStyle = "rgba(200, 200, 200, 1.0)";
     var value = callToString ? v[s].toString() : v[s];
     var i;
     for (i=NUM_BLOCKS_Y, h=(NUM_BLOCKS_Y - value.toString()/cap * NUM_BLOCKS_Y); i>h; --i) {
@@ -85,11 +87,12 @@ document.addEventListener('DOMContentLoaded', function() {
     update('prepsMean', true);
     update('pntpsMean', true);
 
-    ctx.drawImage(c, -GRAPH_BLOCK_SIZE_TOTAL, 0, c.width, c.height);
-    ctx.fillStyle = "#c0c0c0";
-    ctx.fillRect(c.width - GRAPH_BLOCK_SIZE_TOTAL, 0, GRAPH_BLOCK_SIZE, c.height);
-    drawGraphLine('parpsMean', true, 20, 'rgba(0, 200, 0, 1.0)');
-    drawGraphLine('dedpsMean', true, 20, 'rgba(200, 0, 0, 1.0)');
+    var before = ctx.getImageData(0, 0, c.width, c.height);
+    //ctx.drawImage(before, -GRAPH_BLOCK_SIZE_TOTAL, 0, c.width, c.height);
+    ctx.putImageData(before, - GRAPH_BLOCK_SIZE_TOTAL, 0);
+    ctx.clearRect(c.width - GRAPH_BLOCK_SIZE_TOTAL, 0, GRAPH_BLOCK_SIZE, c.height);
+    drawGraphLine('parpsMean', true, 20, 'rgba(0, 255, 0, 1.0)');
+    drawGraphLine('dedpsMean', true, 20, 'rgba(255, 0, 0, 1.0)');
 
   }, 1000);
 
