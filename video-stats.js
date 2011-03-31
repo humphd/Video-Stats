@@ -51,7 +51,7 @@
 
     this.decodedFrames     = 0;
     this.parsedFrames      = 0;
-    this.paintedFrameCount = 0;
+    this.paintedFrames     = 0;
     this.presentedFrames   = 0;
     this.paintedFrames     = 0;
     this.delaySum          = 0;
