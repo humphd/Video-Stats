@@ -24,12 +24,12 @@
   }
 
   if (!videoStatsSupported) {
-    throw new Error("Video Stats: Mozilla <video> painting performance statistics not found!";
+    throw new Error("Video Stats: Mozilla <video> painting performance statistics not found!");
   }
 
   // Also assumes existence of mozRequestAnimationFrame
   if (!("mozRequestAnimationFrame" in window)) {
-    throw new Error("Video Stats: mozRequestAnimationFrame not found!";
+    throw new Error("Video Stats: mozRequestAnimationFrame not found!");
   }
 
   var Mean = function() {
