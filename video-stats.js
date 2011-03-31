@@ -13,7 +13,7 @@
 (function(window, document) {
 
   // Relies on Mozilla Firefox 5+ only properties, bail if not here.
-  var statProps = "mozParsedFrames mozDecodedFrames mozPresentedFrames mozPaintedFrames mozFrameDelay".split();
+  var statProps = "mozParsedFrames mozDecodedFrames mozPresentedFrames mozPaintedFrames mozFrameDelay".split(' ');
 
   var videoStatsSupported = true,
       videoProto = HTMLVideoElement.prototype;
@@ -96,8 +96,8 @@
 
         v.parpsMean.record(v.parsedPerSec);
         v.dedpsMean.record(v.decodedPerSec);
-        v.prepsMean.record(presentedPerSec);
-        v.pntpsMean.record(paintedPerSec);
+        v.prepsMean.record(v.presentedPerSec);
+        v.pntpsMean.record(v.paintedPerSec);
       }
     }
 
@@ -128,9 +128,9 @@
   }
 
   function init() {
-    var videos = document.getElementsByTagName('video');
-    for (var i = 0, vl = videos.length; i < vl; i++) {
-      videoElements.push(new VideoStats(videos[i]));
+    var allVideos = document.getElementsByTagName('video');
+    for (var i = 0, vl = allVideos.length; i < vl; i++) {
+      videos.push(new VideoStats(allVideos[i]));
     }
 
     startStats();
@@ -144,5 +144,6 @@
     document.addEventListener('DOMContentLoaded', init, false);
   }
 
+  window.videoStatsObjects = videos;
 
 })(window, window.document);
