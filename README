@@ -1,0 +1,15 @@
+  video-stats.js
+
+  A JavaScript library that adds HTML5 painting performance data to <video>
+  elements, based on video painting info available via Firefox 5+.
+
+  //////////////////////////////////////////////////////////////////////////////
+
+  License           MIT (see included LICENSE)
+
+  Authors           David Humphrey <david.humphrey@senecac.on.ca>
+                    Bobby Richter  <bobby@mozillafoundation.org>
+
+  Github Repo       http://github.com/humphd/Video-Stats.git
+
+  //////////////////////////////////////////////////////////////////////////////
