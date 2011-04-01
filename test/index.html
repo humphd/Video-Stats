@@ -5,5 +5,27 @@
 <body>
   <p>Demonstration of the Firefox video paint statistics. Requires recent <a href="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/">Firefox nightly</a>, (or Firefox 5 once it ships!)</p>
 
-  <video tabindex="0" src="http://videos.mozilla.org/serv/webmademovies/buttercamp.ogv" id="v" controls="controls" autoplay="autoplay"></video>
+<div>
+<video id="video-0" src="http://videos.mozilla.org/serv/webmademovies/buttercamp.ogv" controls></video>
+</div>
+
+<div>
+<video id="video-1" src="http://people.mozilla.com/~cpearce/Patent_Absurdity_LQ_350kbit.ogv" controls></video>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+
+  var v0 = document.getElementById('video-0');
+  var v1 = document.getElementById('video-1');
+
+  v0.muted = true;
+  v0.play();
+
+  v1.muted = true;
+  v1.play();
+
+}, false);
+</script>
+
 </body></html>

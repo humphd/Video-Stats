@@ -80,9 +80,9 @@
   var videos = [];
 
   function startStats() {
-    var vl = videos.length;
-
     function recalcRates() {
+      var vl = videos.length || 0;
+
       for (var i = 0; i < vl; i++) {
         var v = videos[i],
             video = v.video;
@@ -130,6 +130,7 @@
     }
 
     function updateFrameDelayMean() {
+      var vl = videos.length || 0;
       for (var i = 0; i < vl; i++) {
         var v = videos[i],
             video = v.video;
@@ -163,15 +164,51 @@
   const NUM_BLOCKS_Y = GRAPH_HEIGHT / GRAPH_BLOCK_SIZE_TOTAL;
 
   var createGraph = (function() {
-    var graphOffset = 10;
+    var graphOffsetLeft = 0,
+        lastVideo = null;
+
+    // Stolen lovingly from popcorn.js, used under MIT License.
+    function getPosition(elem) {
+      var bounds = elem.getBoundingClientRect(),
+          doc = elem.ownerDocument,
+          docElem = document.documentElement,
+          body = document.body,
+          clientTop, clientLeft, scrollTop, scrollLeft, top, left;
+
+      clientTop  = docElem.clientTop  || body.clientTop  || 0;
+      clientLeft = docElem.clientLeft || body.clientLeft || 0;
+
+      //  Determine correct scrollTop/Left
+      scrollTop  = (window.pageYOffset && docElem.scrollTop  || body.scrollTop);
+      scrollLeft = (window.pageXOffset && docElem.scrollLeft || body.scrollLeft);
+
+      //  Temp top/left
+      top  = Math.ceil(bounds.top  + scrollTop  - clientTop);
+      left = Math.ceil(bounds.left + scrollLeft - clientLeft);
+
+      for (var p in bounds) {
+        bounds[p] = Math.round(bounds[p]);
+      }
+
+      return { top: top, left: left, width: bounds.width, height: bounds.height };
+    }
 
     return function createGraph(video, name) {
+      if (video === lastVideo) {
+        graphOffset += GRAPH_WIDTH;
+      } else {
+        graphOffset = 10;
+        lastVideo = video;
+      }
+
+      videoPosition = getPosition(video);
+
       var canvas = document.createElement('canvas');
       canvas.setAttribute('width', GRAPH_WIDTH);
       canvas.setAttribute('height', GRAPH_HEIGHT);
       canvas.style.position = 'absolute';
-      canvas.style.top = (video.offsetTop + 10) + 'px';
-      canvas.style.left = (graphOffset + video.offsetLeft) + 'px';
+      canvas.style.top = (videoPosition.top + 10) + 'px';
+      canvas.style.left = (graphOffset + videoPosition.left) + 'px';
       canvas.setAttribute('z-index', 100);
       canvas.style.border = "solid 1px #2F3C52";
       canvas.title = name;
@@ -185,8 +222,8 @@
       text.setAttribute('width', GRAPH_WIDTH);
       text.setAttribute('height', GRAPH_HEIGHT);
       text.style.position = 'absolute';
-      text.style.top = (video.offsetTop + 10) + 'px';
-      text.style.left = (graphOffset + video.offsetLeft) + 'px';
+      text.style.top = (videoPosition.top + 10) + 'px';
+      text.style.left = (graphOffset + videoPosition.left) + 'px';
       text.setAttribute('z-index', 150);
       text.style.color = "white";
       text.style.fontSize = "11px";
@@ -195,8 +232,6 @@
       text.title = name;
 
       video.parentNode.insertBefore(text, video);
-
-      graphOffset += GRAPH_WIDTH;
 
       return { canvas: canvas,
                ctx: ctx,
@@ -221,7 +256,17 @@
   function init() {
     var allVideos = document.getElementsByTagName('video');
     for (var i = 0, vl = allVideos.length; i < vl; i++) {
-      videos.push(new VideoStats(allVideos[i]));
+      var v = allVideos[i];
+
+      if (v.readyState < HTMLMediaElement.HAVE_METADATA) {
+        v.addEventListener('loadedmetadata', (function(videos) {
+          return function() {
+            videos.push(new VideoStats(this));
+          };
+        })(videos), false);
+      } else {
+        videos.push(new VideoStats(v));
+      }
     }
 
     startStats();
