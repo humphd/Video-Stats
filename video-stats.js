@@ -42,8 +42,12 @@
     this.sum += val;
   };
 
+  Mean.prototype.value = function() {
+    return this.count ? (this.sum / this.count) : 0;
+  };
+
   Mean.prototype.toString = function() {
-    return this.count ? (this.sum / this.count).toFixed(3) : '0';
+    return this.value.toFixed(3);
   };
 
   var VideoStats = function(video) {
@@ -51,7 +55,7 @@
     this.graphs = { 'parsedPerSec': createGraph(video, 'Parsed Frames p/s'),
                     'decodedPerSec': createGraph(video, 'Decoded Frames p/s'),
                     'presentedPerSec': createGraph(video, 'Presented Frames p/s'),
-                    'paintedPerSec': createGraph(video, 'Panted Frames p/s')
+                    'paintedPerSec': createGraph(video, 'Painted Frames p/s')
                   };
 
     this.decodedFrames     = 0;
@@ -103,6 +107,11 @@
         v.dedpsMean.record(v.decodedPerSec);
         v.prepsMean.record(v.presentedPerSec);
         v.pntpsMean.record(v.paintedPerSec);
+
+        updateGraph(v.graphs['parsedPerSec'], v['parsedPerSec'], v['parpsMean'].value);
+        updateGraph(v.graphs['decodedPerSec'], v['decodedPerSec'], v['dedpsMean'].value);
+        updateGraph(v.graphs['presentedPerSec'], v['presentedPerSec'], v['prepsMean'].value);
+        updateGraph(v.graphs['paintedPerSec'], v['paintedPerSec'], v['pntpsMean'].value);
       }
     }
 
@@ -134,11 +143,6 @@
           v.delayMean.record(delay);
           v.paintedFrameCount = video.mozPaintedFrames;
         }
-
-        updateGraph(v.graphs['parsedPerSec'], v['parsedPerSec'], v['parpsMean']);
-        updateGraph(v.graphs['decodedPerSec'], v['decodedPerSec'], v['dedpsMean']);
-        updateGraph(v.graphs['presentedPerSec'], v['presentedPerSec'], v['prepsMean']);
-        updateGraph(v.graphs['paintedPerSec'], v['paintedPerSec'], v['pntpsMean']);
       }
     }
 
