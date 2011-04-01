@@ -48,6 +48,11 @@
 
   var VideoStats = function(video) {
     this.video = video;
+    this.graphs = { 'parsedPerSec': createGraph(video, 'Parsed Frames p/s'),
+                    'decodedPerSec': createGraph(video, 'Decoded Frames p/s'),
+                    'presentedPerSec': createGraph(video, 'Presented Frames p/s'),
+                    'paintedPerSec': createGraph(video, 'Panted Frames p/s')
+                  };
 
     this.decodedFrames     = 0;
     this.parsedFrames      = 0;
@@ -101,6 +106,20 @@
       }
     }
 
+    function updateGraph(graph, val, mean) {
+      var ctx = graph.ctx;
+      var before = ctx.getImageData(0, 0, GRAPH_WIDTH, GRAPH_HEIGHT);
+      ctx.putImageData(before, - GRAPH_BLOCK_SIZE_TOTAL, 0);
+
+      ctx.fillStyle = 'rgba(0,0,30,1.0)';
+      ctx.clearRect(GRAPH_WIDTH - GRAPH_BLOCK_SIZE_TOTAL, 0, GRAPH_BLOCK_SIZE, GRAPH_HEIGHT);
+
+      drawGraphLine(graph, val, 20, 'rgba(133, 171, 193, 1.0)');
+      drawGraphLine(graph, mean, 20, 'rgba(255, 0, 0, 1.0)');
+
+      graph.text.innerHTML = val;
+    }
+
     function updateFrameDelayMean() {
       for (var i = 0; i < vl; i++) {
         var v = videos[i],
@@ -110,11 +129,16 @@
           continue;
         }
 
-        var delay = v.mozFrameDelay;
-        if (video.mozPaintedFrames !== v.paintedFrameCount) {
+        var delay = video.mozFrameDelay;
+        if (video.mozPaintedFrames !== v.paintedFrames) {
           v.delayMean.record(delay);
           v.paintedFrameCount = video.mozPaintedFrames;
         }
+
+        updateGraph(v.graphs['parsedPerSec'], v['parsedPerSec'], v['parpsMean']);
+        updateGraph(v.graphs['decodedPerSec'], v['decodedPerSec'], v['dedpsMean']);
+        updateGraph(v.graphs['presentedPerSec'], v['presentedPerSec'], v['prepsMean']);
+        updateGraph(v.graphs['paintedPerSec'], v['paintedPerSec'], v['pntpsMean']);
       }
     }
 
@@ -125,6 +149,69 @@
       clearInterval(recalcInterval);
       clearInterval(delayInterval);
     };
+  }
+
+  const GRAPH_HEIGHT = 30;
+  const GRAPH_WIDTH = 30;
+  const GRAPH_BLOCK_SIZE = 1;
+  const GRAPH_BLOCK_SPACING = 0;
+  const GRAPH_BLOCK_SIZE_TOTAL = GRAPH_BLOCK_SIZE + GRAPH_BLOCK_SPACING;
+  const NUM_BLOCKS_Y = GRAPH_HEIGHT / GRAPH_BLOCK_SIZE_TOTAL;
+
+  var createGraph = (function() {
+    var graphOffset = 10;
+
+    return function createGraph(video, name) {
+      var canvas = document.createElement('canvas');
+      canvas.setAttribute('width', GRAPH_WIDTH);
+      canvas.setAttribute('height', GRAPH_HEIGHT);
+      canvas.style.position = 'absolute';
+      canvas.style.top = (video.offsetTop + 10) + 'px';
+      canvas.style.left = (graphOffset + video.offsetLeft) + 'px';
+      canvas.setAttribute('z-index', 100);
+      canvas.style.border = "solid 1px #2F3C52";
+      canvas.title = name;
+      video.parentNode.insertBefore(canvas, video);
+
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'rgba(0,0,30,1.0)';
+      ctx.fillRect(0, 0, GRAPH_WIDTH, GRAPH_HEIGHT);
+
+      var text = document.createElement('div');
+      text.setAttribute('width', GRAPH_WIDTH);
+      text.setAttribute('height', GRAPH_HEIGHT);
+      text.style.position = 'absolute';
+      text.style.top = (video.offsetTop + 10) + 'px';
+      text.style.left = (graphOffset + video.offsetLeft) + 'px';
+      text.setAttribute('z-index', 150);
+      text.style.color = "white";
+      text.style.fontSize = "11px";
+      text.style.paddingTop = "18px";
+      text.style.paddingLeft = "3px";
+      text.title = name;
+
+      video.parentNode.insertBefore(text, video);
+
+      graphOffset += GRAPH_WIDTH;
+
+      return { canvas: canvas,
+               ctx: ctx,
+               text: text
+             };
+    };
+  })();
+
+  function drawGraphLine(graph, value, cap, colour) {
+    var ctx = graph.ctx;
+
+    colour = colour || "rgba(64, 64, 64, 1.0)";
+    ctx.fillStyle = 'rgba(0,0,30,1.0)';
+    var i;
+    for (i=NUM_BLOCKS_Y, h=(NUM_BLOCKS_Y - value.toString()/cap * NUM_BLOCKS_Y); i>h; --i) {
+      ctx.fillRect(GRAPH_WIDTH - GRAPH_BLOCK_SIZE_TOTAL, i * GRAPH_BLOCK_SIZE_TOTAL, GRAPH_BLOCK_SIZE, GRAPH_BLOCK_SIZE);
+    }
+    ctx.fillStyle = colour;
+    ctx.fillRect(GRAPH_WIDTH - GRAPH_BLOCK_SIZE_TOTAL, i * GRAPH_BLOCK_SIZE_TOTAL, GRAPH_BLOCK_SIZE, GRAPH_BLOCK_SIZE);
   }
 
   function init() {
@@ -144,6 +231,6 @@
     document.addEventListener('DOMContentLoaded', init, false);
   }
 
-  window.videoStatsObjects = videos;
+  window['videoStatsObjects'] = videos;
 
 })(window, window.document);
