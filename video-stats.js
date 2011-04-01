@@ -123,8 +123,8 @@
       ctx.fillStyle = 'rgba(0,0,30,1.0)';
       ctx.clearRect(GRAPH_WIDTH - GRAPH_BLOCK_SIZE_TOTAL, 0, GRAPH_BLOCK_SIZE, GRAPH_HEIGHT);
 
-      drawGraphLine(graph, val, 20, 'rgba(133, 171, 193, 1.0)');
-      drawGraphLine(graph, mean, 20, 'rgba(255, 0, 0, 1.0)');
+      drawGraphLine(graph, val, 60, 'rgba(133, 171, 193, 1.0)');
+      drawGraphLine(graph, mean, 60, 'rgba(255, 0, 0, 1.0)');
 
       graph.text.innerHTML = val;
     }
