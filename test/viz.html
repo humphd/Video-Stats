@@ -1,0 +1,103 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><title>Firefox video paint stats</title></head>
+<script src="../video-stats.js"></script>
+<script src="../video-stats-viz.js"></script>
+<style>
+  #video-container {
+    width: 480px;
+    height: 270px;
+    position: relative;
+  }
+  
+  video {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 1;
+    width: 480px;
+    height: 270px;
+  }
+
+  canvas {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    z-index: 2;
+    border: 1px #fff solid;
+  }
+
+  #legend-container {
+    position: absolute;
+    top: 80px;
+    right: 1px;
+    width: 150px;
+    font: 8pt sans-serif;
+    border: 1px #fff solid;
+    color: #fff;
+    z-index: 3;
+  }
+
+  .video-stats-legend-item {
+    position: relative;
+  }
+
+  .video-stats-legend-name {
+    margin-left: 2px;
+  }
+
+  .video-stats-legend-color {
+    width: 10px;
+    height: 10px;
+    border: 1px #fff solid;
+    position: absolute;
+    right: 1px;
+  }
+</style>
+<body>
+  <p>Demonstration of the Firefox video paint statistics. Requires recent <a href="http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/">Firefox nightly</a>, (or Firefox 5 once it ships!)</p>
+
+  <div id="video-container">
+    <video tabindex="0" src="http://videos.mozilla.org/serv/webmademovies/buttercamp.ogv" id="v" controls="controls" autoplay="autoplay"></video>
+    <canvas id="viz-canvas" width="150" height="75"></canvas>
+    <div id="legend-container"></div>
+  </div>
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+
+  var v = window.videoStatsObjects[0],
+      viz = new VideoStatsViz({
+        stats: v,                                           // a videoStatsObject
+        scale: .5,                                          // global value scale
+        history: 20,                                        // blocks of history to keep in view
+        vScale: 1,                                          // vertical scale of blocks (gfx only)
+        canvas: document.getElementById( 'viz-canvas' ),    // canvas to use for drawing
+        properties: {                                       // list of properties
+          "decodedPerSec": {                                // property name
+            color: "#0022bb",                               // color (any valid fillStyle, really)
+            scale: 10,                                      // scale for this property's values
+            order: 3,                                       // drawing order
+          },
+          "paintedPerSec": {
+            color: "#00bb22",
+            scale: 10,
+            order: 1,
+          },
+          "prepsMean": {
+            color: "#bb0022",
+            scale: 5,
+            order: 2,
+          }
+        }
+      });
+
+  viz.makeLegend( "legend-container" );                     // fill #legend-container with data
+
+  setInterval(function() {
+    viz.update();                                           // update ever 1000 ms
+  }, 1000);
+
+}, false);
+
+</script>
+</body></html>
