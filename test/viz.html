@@ -69,9 +69,10 @@ document.addEventListener('DOMContentLoaded', function() {
       viz = new VideoStatsViz({
         stats: v,                                           // a videoStatsObject
         scale: .5,                                          // global value scale
-        history: 20,                                        // blocks of history to keep in view
+        history: 30,                                        // blocks of history to keep in view
         vScale: 1,                                          // vertical scale of blocks (gfx only)
         canvas: document.getElementById( 'viz-canvas' ),    // canvas to use for drawing
+        background: "rgba( 0, 0, 0, .6 )",                  // background style of graph
         properties: {                                       // list of properties
           "decodedPerSec": {                                // property name
             color: "#0022bb",                               // color (any valid fillStyle, really)
@@ -91,10 +92,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
 
-  viz.makeLegend( "legend-container" );                     // fill #legend-container with data
+  var legend = viz.makeLegend( "legend-container" );        // fill #legend-container with data
 
   setInterval(function() {
-    viz.update();                                           // update ever 1000 ms
+    viz.update();                                           // update graph
+    legend.update();                                        // update legend
   }, 1000);
 
 }, false);

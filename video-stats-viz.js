@@ -12,6 +12,69 @@
             };
   })();
 
+  var propertyMap = {
+    decodedFrames: {
+      title: "Decoded Frames",
+      unit: "p/s"
+    },
+    parsedFrames: {
+      title: "Parsed Frames",
+      unit: "p/s"
+    },
+    paintedFrames: {
+      title: "Painted Frames",
+      unit: "p/s"
+    },
+    presentedFrames: {
+      title: "Presented Frames",
+      unit: "p/s"
+    },
+    delaySum: {
+      title: "Delay Sum",
+      unit: ""
+    },
+    delayCount: {
+      title: "Delay Count",
+      unit: ""
+    },
+    decodedPerSec: {
+      title: "Decoded Frames",
+      unit: ""
+    },
+    parsedPerSec: {
+      title: "Parsed Frames",
+      unit: ""
+    },
+    presentedPerSec: {
+      title: "Presented Frames",
+      unit: "p/s"
+    },
+    paintedPerSec: {
+      title: "Painted Frames",
+      unit: "p/s"
+    },
+    delayMean: {
+      title: "Delay Mean",
+      unit: ""
+    },
+    parpsMean: {
+      title: "Parps Mean",
+      unit: ""
+    },
+    dedpsMean: {
+      title: "Dedps Mean",
+      unit: ""
+    },
+    prepsMean: {
+      title: "Preps Mean",
+      unit: "p/s"
+    },
+    pntpsMean: {
+      title: "Pntps Frames",
+      unit: "p/s"
+    }
+  };
+
   var VideoStatsViz = window.VideoStatsViz = function( options ) {
     var canvas = options.canvas || document.createElement( "canvas" ),    // drawing canvas
         width, height,                                                    // canvas dims
@@ -22,6 +85,7 @@
         history = options.history,                                        // length of history to keep around when drawing
         scale = options.scale || 1,                                       // global value scale
         vScale = options.vScale || 1,                                     // block scaling (gfx)
+        backgroundStyle = options.background || "rgba( 0, 0, 0, 0 )",     // background style of graph
         properties = [];                                                  // list of properties
 
     // safety-check all the properties and add them to the property list
@@ -31,6 +95,8 @@
         property.name = prop;
         property.order = property.order || -1;
         property.scale = property.scale || 1;
+        property.unit = propertyMap[ prop ].unit;
+        property.title = propertyMap[ prop ].title;
         properties.push( property );
       } //if
     } //for
@@ -45,7 +111,7 @@
       width = options.width || canvas.width, 
       height = options.height || canvas.height;
       ctx = canvas.getContext( "2d" );
-      ctx.fillStyle = "rgba( 0, 0, 0, 0 )";
+      ctx.fillStyle = backgroundStyle;
       ctx.fillRect( 0, 0, canvas.width, canvas.height );
       hBlockSize = width / history;
       vBlockSize = hBlockSize * vScale;
@@ -70,7 +136,9 @@
 
         // move current image to the left
         var lastImageData = ctx.getImageData( 0, 0, width, height );
-        ctx.clearRect( 0, 0, width, height );
+        ctx.fillStyle = backgroundStyle;
+        ctx.clearRect( width - hBlockSize, 0, hBlockSize, height );
+        ctx.fillRect( width - hBlockSize, 0, hBlockSize, height );
         ctx.putImageData( lastImageData, -hBlockSize, 0 );
 
         // draw properties
@@ -138,26 +206,42 @@
       // generate one item
       function getItem( property ) {
         var div = document.createElement( "div" ),
-            titleSpan = document.createElement( "span" );
-            colorSpan = document.createElement( "span" );
+            titleSpan = document.createElement( "span" ),
+            colorSpan = document.createElement( "span" ),
+            valueSpan = document.createElement( "span" );
         div.className = "video-stats-legend-item";
-        titleSpan.innerHTML = properties[ i ].name;
+        titleSpan.appendChild( document.createTextNode( properties[ i ].title + ": " ) );
+        titleSpan.appendChild( valueSpan );
         titleSpan.className = "video-stats-legend-name";
         colorSpan.style.background = property.color;
         colorSpan.className = "video-stats-legend-color";
         div.appendChild( titleSpan );
         div.appendChild( colorSpan );
-        return div;
+        return { 
+          div: div, 
+          update: function() {
+            valueSpan.innerHTML = statsObj[ property.name ].toString() + property.unit;
+          }
+        };
       } //getItem
 
+      var legendItems = [];
       // loop through properties to get each item
       for ( var i=0; i<properties.length; ++i ) {
-        var div = getItem( properties[ i ] );
-        outerDiv.appendChild( div );
+        var item = getItem( properties[ i ] );
+        outerDiv.appendChild( item.div );
+        legendItems.push( item );
       } //for
       container.appendChild( outerDiv );
 
-      return container;
+      return {
+        container: container,
+        update: function() {
+          for ( var i=0, l=legendItems.length; i<l; ++i ) {
+            legendItems[ i ].update();
+          }
+        }
+      };
     }; //makeLegend
 
     // size everything
